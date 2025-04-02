@@ -190,7 +190,7 @@ async def list_events(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                 for event in events:
                     event_id, name, edate, etime = event
                     # Format the date to show the day of the week (e.g., Monday, 2025-03-29)
-                    event_date = datetime.strptime(date, "%Y-%m-%d").strftime("%A, %Y-%m-%d")
+                    event_date = datetime.strptime(edate, "%Y-%m-%d").strftime("%A, %Y-%m-%d")
 
                     # Count the number of participants registered for the event
                     c.execute("SELECT COUNT(*) FROM registrations WHERE event_id = ?", (event_id,))
