@@ -147,7 +147,7 @@ async def save_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.debug("event save with name %s date %s time %s location %s level %s and coord %s", event_name, event_date, event_time, location_name, level, location_coordinates)
     
     c.execute(
-        "INSERT INTO events (name, date, time, location_name, level, location_coordinates) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO events (name, edate, etime, location_name, level, location_coordinates) VALUES (?, ?, ?, ?, ?, ?)",
         (event_name, event_date, event_time, location_name, level, location_coordinates)
     )
     conn.commit()
