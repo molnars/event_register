@@ -26,8 +26,8 @@ c.execute('''CREATE TABLE IF NOT EXISTS events (
                 etime TEXT,
                 location_name TEXT,
                 level TEXT,
-                location_coordinates TEXT,
-                published INTEGER)''')
+                published INTEGER,
+                location_coordinates TEXT)''')
 
 c.execute('''CREATE TABLE IF NOT EXISTS registrations (
                 user_id INTEGER,
@@ -147,8 +147,8 @@ async def save_event(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.debug("event save with name %s date %s time %s location %s level %s and coord %s", event_name, event_date, event_time, location_name, level, location_coordinates)
     
     c.execute(
-        "INSERT INTO events (name, edate, etime, location_name, level, location_coordinates) VALUES (?, ?, ?, ?, ?, ?)",
-        (event_name, event_date, event_time, location_name, level, location_coordinates)
+        "INSERT INTO events (name, edate, etime, location_name, location_coordinates) VALUES (?, ?, ?, ?, ?)",
+        (event_name, event_date, event_time, location_name, location_coordinates)
     )
     conn.commit()
     logger.debug("event save after commit")
@@ -165,25 +165,39 @@ async def list_events(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if context.args:
         try:
             event_name = " ".join(context.args)
-            c.execute("SELECT event_id, name, edate, etime, location_name, level, location_coordinates FROM events WHERE name = ?", (event_name,))
-            event = c.fetchone()
-            event_id, name, edate, etime, location_name, level, location_coordintates = event
+            logger.debug(f"list event: {event_name}")
 
-            c.execute("SELECT COUNT(*) FROM registrations WHERE event_id = ?", (event_id,))
-            participant_count = c.fetchone()[0]
-            event_list=""
-            if not location_name:
-                location_name = "."
-            event_list += f"{name} on {edate} at {etime} at {location_name} - {participant_count} participant(s)\n"
-            if location_coordintates:
-                event_list += f"{location_coordintates}\n"
-            await update.message.reply_text(f"Event {event_name}:\n{event_list}")
+            if event_name.lower() == "all":
+                c.execute("SELECT event_id, name, edate, etime, location_name, location_coordinates FROM events")
+            else:
+                c.execute("SELECT event_id, name, edate, etime, location_name, location_coordinates FROM events WHERE name = ?", (event_name,))
+            events = c.fetchall()
+            if events:
+                
+                event_list = ""
+                for event in events:
+                    event_id, name, edate, etime, location_name, location_coordintates = event
+
+                    event_date = datetime.strptime(edate, "%Y-%m-%d").strftime("%A, %Y-%m-%d")
+                    day = datetime.strptime(event_date, "%Y-%m-%d").strftime('%A')
+         
+                    c.execute("SELECT COUNT(*) FROM registrations WHERE event_id = ?", (event_id,))
+                    participant_count = c.fetchone()[0]
+                    if not location_name:
+                        location_name = "."
+                    event_list += f"{name} on {day} {event_date} at {etime} at {location_name} - {participant_count} participant(s)\n"
+                    if location_coordintates:
+                        event_list += f"{location_coordintates}\n"
+                    event_list+=f"\n"
+                await update.message.reply_text(f"Events:\n{event_list}")
+            else:
+                await update.message.reply_text("No events found.")
         except ValueError:
-            await update.message.reply_text("Invalid event name. Use /events to see available events.")
-            logger.error("Invalid event name input.")
+            await update.message.reply_text("Event issue. Use /events to see available events.")
+            logger.error("Invalid event input.")
     else:
         try:
-            c.execute("SELECT event_id, name, edate, etime FROM events WHERE edate >= date('now')")
+            c.execute("SELECT event_id, name, edate, etime FROM events WHERE edate >= date('today')")
             events = c.fetchall()
             if events:
                 event_list = ""
@@ -191,12 +205,13 @@ async def list_events(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                     event_id, name, edate, etime = event
                     # Format the date to show the day of the week (e.g., Monday, 2025-03-29)
                     event_date = datetime.strptime(edate, "%Y-%m-%d").strftime("%A, %Y-%m-%d")
+                    day = datetime.strptime(event_date, "%Y-%m-%d").strftime('%A')
 
                     # Count the number of participants registered for the event
                     c.execute("SELECT COUNT(*) FROM registrations WHERE event_id = ?", (event_id,))
                     participant_count = c.fetchone()[0]
 
-                    event_list += f"{name} on {event_date} at {etime} - {participant_count} participant(s)\n"
+                    event_list += f"{name} on {day} {event_date} at {etime} - {participant_count} participant(s)\n"
 
                 await update.message.reply_text(f"Upcoming events:\n{event_list}")
             else:
