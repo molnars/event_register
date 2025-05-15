@@ -1,0 +1,38 @@
+[
+    {
+        "question": "Short name for the drive",
+        "type": "text"
+        
+    },
+    {
+        "question": "📅 When is the drive (YYYY-MM-DD)?",
+        "options": ["next Saturday", "next Sunday", "Other"],
+        "isDate": true,
+        "allow_text": true
+    },
+    {
+        "question": "What time is the start of the drive? (meetup is 30 mins prior)",
+        "options": ["5:30", "6:00", "6:30", "7:00","18:00", "Other"],
+        "allow_text": true
+    },
+    {
+        "question": "👥 Minimum level for drive?",
+        "options": ["Open", "L2 - Sand explorer", "L3 - Dune rider", "L6 - Marshals", "Other"],
+        "allow_text": true
+    },
+    {
+        "question": "Radio frequency?",
+        "options": ["446000", "446100","446200","446300","446400","446500","446600","446700","Other"],
+        "allow_text": true
+    },
+    {
+        "question": "Location name for drive?",
+        "options": ["Sharjah", "Nahel", "Other"],
+        "allow_text": true
+    }, 
+    {
+        "question": "📍 Location coordinates for meeting point",
+        "reference": "locations",
+        "allow_text": true
+    } 
+]
